@@ -4,13 +4,15 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, get_object_or_404
-from django.views.generic import ListView, DetailView, View
+from django.views.generic import ListView, DetailView, View, TemplateView
 from django.shortcuts import redirect
 from django.utils import timezone
 from .forms import CheckoutForm, CouponForm, RefundForm
-from .models import Item, OrderItem, Order, BillingAddress, Payment, Coupon, Refund, Category
+from .models import Item, OrderItem, Order, BillingAddress, Payment, Coupon, Refund, Category, CustomerOrder, OrderRefund
 from django.http import HttpResponseRedirect
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, render, redirect, get_object_or_404
+from django.views.decorators.http import require_POST
+from django.utils.decorators import method_decorator
 
 # Create your views here.
 import random
@@ -382,3 +384,69 @@ class RequestRefundView(View):
             except ObjectDoesNotExist:
                 messages.info(self.request, "This order does not exist")
                 return redirect("core:request-refund")
+            
+
+# this is for user pannel
+class ProfileDashboardView(LoginRequiredMixin, TemplateView):
+    template_name = 'profile/dashboard.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['orders_count'] = CustomerOrder.objects.filter(user=self.request.user).count()
+        context['refund_count'] = OrderRefund.objects.filter(user=self.request.user).count()
+        return context
+    
+class UserOrdersView(LoginRequiredMixin, ListView):
+    model = Order
+    template_name = 'profile/user_orders.html'
+    context_object_name = 'orders'
+
+    def get_queryset(self):
+        return Order.objects.filter(
+            user=self.request.user,
+            ordered=True
+        ).order_by('-ordered_date')
+    
+class OrderDetailView(LoginRequiredMixin, DetailView):
+    model = Order
+    template_name = 'profile/order_detail.html'
+    context_object_name = 'order'
+
+    def get_queryset(self):
+        return Order.objects.filter(
+            user=self.request.user,
+            ordered=True
+        )
+
+class RequestRefundView(LoginRequiredMixin, View):
+
+    def get(self, request, pk):
+        order = get_object_or_404(CustomerOrder, pk=pk, user=request.user)
+        return render(request, 'profile/refund_form.html', {'order': order})
+
+    def post(self, request, pk):
+        order = get_object_or_404(CustomerOrder, pk=pk, user=request.user)
+        reason = request.POST.get('reason')
+
+        OrderRefund.objects.create(
+            order=order,
+            user=request.user,
+            reason=reason
+        )
+
+        return redirect('core:user_orders')
+    
+class CancelOrderView(LoginRequiredMixin, View):
+
+    def post(self, request, pk):
+        order = get_object_or_404(
+            Order,
+            pk=pk,
+            user=request.user,
+            ordered=True
+        )
+
+        order.refund_requested = True
+        order.save()
+
+        return redirect('core:user_orders')

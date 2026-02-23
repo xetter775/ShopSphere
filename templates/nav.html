@@ -10,7 +10,9 @@
 	.topbar a:hover{
 		color: black;
 	}
+	
 </style>
+
 <!-- Header -->
 <header class="header1">
 		<!-- Header desktop -->
@@ -19,8 +21,7 @@
 			<div class="wrap_header">
 				<!-- Logo -->
 				<a href="/" class="logo">
-					</b>ShopSphere</p>
-					<img src="images/icons/logo.png" alt="">
+					<img src="{% static "images/icons/logo.png" %}" alt="">
 				</a>
 
 				<!-- Menu -->
@@ -48,7 +49,10 @@
 								</div>
 							</li>
 							<li>
-								<a href="{% url 'account_logout' %}">Logout</a>
+								<a href="{% url 'account_logout' %}">logout </a>
+								<a href="{% url 'core:user_orders' %}">
+    								<img src="{% static 'images/icons/user.png' %}" alt="">
+								</a>
 							</li>
 							{% else %}
 							<li>
@@ -220,9 +224,34 @@
 					<li class="item-menu-mobile">
 						<a href="{% url 'core:order-summary' %}">Cart<span class="badge badge-dark">{{ request.user|cart_item_count }}</span></a>
 					</li>
-					<li class="item-menu-mobile">
-						<a href="{% url 'account_logout' %}">Logout</a>
-					</li>
+					<li class="nav-item dropdown">
+    <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
+       data-bs-toggle="dropdown" aria-expanded="false">
+        <img src="{% static 'images/icons/user.png' %}" width="28">
+    </a>
+
+    <ul class="dropdown-menu dropdown-menu-end shadow">
+        <li>
+            <a class="dropdown-item" href="{% url 'core:profile_dashboard' %}">
+                My Profile
+            </a>
+        </li>
+
+        <li>
+            <a class="dropdown-item" href="{% url 'core:user_orders' %}">
+                My Orders
+            </a>
+        </li>
+
+        <li><hr class="dropdown-divider"></li>
+
+        <li>
+            <a class="dropdown-item text-danger" href="{% url 'account_logout' %}">
+                Logout
+            </a>
+        </li>
+    </ul>
+</li>
 					{% else %}
 					<li class="item-menu-mobile">
 						<a href="#">Login</a>

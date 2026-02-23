@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path,include
 from .views import (
     ItemDetailView,
     HomeView,
@@ -11,7 +11,12 @@ from .views import (
     PaymentView,
     AddCouponView,
     RequestRefundView,
-    CategoryView
+    CategoryView,
+    ProfileDashboardView,
+    UserOrdersView,
+    OrderDetailView,
+    RequestRefundView,
+    CancelOrderView,
 )
 
 app_name = 'core'
@@ -29,5 +34,12 @@ urlpatterns = [
     path('remove-item-from-cart/<slug>/', remove_single_item_from_cart,
          name='remove-single-item-from-cart'),
     path('payment/<payment_option>/', PaymentView.as_view(), name='payment'),
-    path('request-refund/', RequestRefundView.as_view(), name='request-refund')
+    path('request-refund/', RequestRefundView.as_view(), name='request-refund'),
+    # this is for user pannel
+    path('profile/', ProfileDashboardView.as_view(), name='profile_dashboard'),
+    path('profile/orders/', UserOrdersView.as_view(), name='user_orders'),
+    path('profile/orders/<int:pk>/', OrderDetailView.as_view(), name='order_detail'),
+    path('profile/refund/<int:pk>/', RequestRefundView.as_view(), name='request_refund'),
+    path('profile/cancel/<int:pk>/', CancelOrderView.as_view(), name='cancel_order'),
+
 ]
